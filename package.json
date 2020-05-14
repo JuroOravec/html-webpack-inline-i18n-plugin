@@ -84,7 +84,7 @@
     "commitizen": "^4.0.4",
     "dotenv-cli": "^3.1.0",
     "env-ci": "^5.0.2",
-    "eslint": "^6.8.0",
+    "eslint": "^7.0.0",
     "git-authors-cli": "^1.0.24",
     "github-label-sync": "^1.4.6",
     "husky": "^4.2.5",

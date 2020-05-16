@@ -36,43 +36,43 @@ export default class HtmlWebpackInlineI18nPlugin {
         debug('Started hook "beforeAssetTagGeneration"');
 
         const { include, exclude, modifyTag, extractLocale } = this.options;
+        const i18nEntryGroups = (compilation.chunks as compilation.Chunk[]).map(
+          (chunk) =>
+            chunk.files
+              .filter((filename) => {
+                const ctx = { ...data, chunk, filename };
+                const [inclPattern, exclPattern] = ([
+                  ['include', include],
+                  ['exclude', exclude],
+                ] as [string, Pattern | undefined][]).map(
+                  ([name, pattern]) =>
+                    pattern && resolvePattern(name, pattern, ctx),
+                );
+                return (
+                  (inclPattern ? filename.match(inclPattern) : true) &&
+                  (exclPattern ? !filename.match(exclPattern) : true)
+                );
+              })
+              .map((filename) => {
+                const ctx = { ...data, chunk, filename };
+                const pattern = resolvePattern(
+                  'extractLocale',
+                  extractLocale!,
+                  ctx,
+                );
+                const match = filename.match(pattern);
+                // If we did not split i18n data by locales, store the file under
+                // 'default' key
+                const locale = match
+                  ? match.groups
+                    ? match.groups.locale
+                    : match[1]
+                  : 'default';
+                return [`data-${locale}`, filename];
+              }),
+        );
         const i18n = Object.fromEntries(
-          (compilation.chunks as compilation.Chunk[])
-            .map((chunk) =>
-              chunk.files
-                .filter((filename) => {
-                  const ctx = { ...data, chunk, filename };
-                  const [inclPattern, exclPattern] = ([
-                    ['include', include],
-                    ['exclude', exclude],
-                  ] as [string, Pattern | undefined][]).map(
-                    ([name, pattern]) =>
-                      pattern && resolvePattern(name, pattern, ctx),
-                  );
-                  return (
-                    (inclPattern ? filename.match(inclPattern) : true) &&
-                    (exclPattern ? !filename.match(exclPattern) : true)
-                  );
-                })
-                .map((filename) => {
-                  const ctx = { ...data, chunk, filename };
-                  const pattern = resolvePattern(
-                    'extractLocale',
-                    extractLocale!,
-                    ctx,
-                  );
-                  const match = filename.match(pattern);
-                  // If we did not split i18n data by locales, store the file under
-                  // 'default' key
-                  const locale = match
-                    ? match.groups
-                      ? match.groups.locale
-                      : match[1]
-                    : 'default';
-                  return [`data-${locale}`, filename];
-                }),
-            )
-            .flat(),
+          i18nEntryGroups.flat().sort(([a], [b]) => a.localeCompare(b)),
         );
         Object.assign(i18nAssetTag.attributes, i18n);
 

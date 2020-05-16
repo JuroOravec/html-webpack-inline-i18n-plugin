@@ -1,6 +1,7 @@
 import type { Compiler, compilation } from 'webpack';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import flatten from 'lodash.flatten';
+import fromPairs from 'lodash.frompairs';
 
 import type { ConstructorOptions, Pattern } from './types';
 import debug from './lib/debug';
@@ -72,7 +73,7 @@ export default class HtmlWebpackInlineI18nPlugin {
                 return [`data-${locale}`, filename];
               }),
         );
-        const i18n = Object.fromEntries(
+        const i18n = fromPairs(
           flatten(i18nEntryGroups).sort(([a], [b]) => a.localeCompare(b)),
         );
         Object.assign(i18nAssetTag.attributes, i18n);
